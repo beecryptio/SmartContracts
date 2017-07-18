@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Migretor.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity ^0.4.11;
+pragma solidity ^0.4.13;
 contract DEx {
     
     struct Escrow {
@@ -22,6 +22,7 @@ contract DEx {
         address sender; //who escrows amount
         address receiver; //to whom amount is escrowed
         uint256 amount;
+        bytes secret;
     }
     
     mapping(bytes32 => Escrow) escrows; //map that holds all the escrows
@@ -53,10 +54,11 @@ contract DEx {
     * _secret: secret in bytes, length random
     */
     
-    function claimEscrow(bytes _secret) returns (bool z){
+    function claimEscrow(bytes _secret) returns (bool z) {
         var hash = sha256(_secret);
         var amount = escrows[hash].amount;
         if(escrows[hash].receiver == msg.sender) {
+            escrows[hash].secret = _secret;
             escrows[hash].amount = 0;
             msg.sender.transfer(amount);
             return true;
@@ -74,9 +76,9 @@ contract DEx {
     /* returns escrow data for a given hash
     * _hash: hash value for which data is returned
     */
-    function escrow(bytes32 _hash) constant returns (uint256 amount, address sender, address receiver, uint256 expiry){
+    function escrow(bytes32 _hash) constant returns (uint256 amount, address sender, address receiver, uint256 expiry, bytes secret){
         var escrowData = escrows[_hash];
-        return (escrowData.amount, escrowData.sender, escrowData.receiver, escrowData.expiryTime);
+        return (escrowData.amount, escrowData.sender, escrowData.receiver, escrowData.expiryTime, escrowData.secret);
     }
     
     /*
