@@ -50,7 +50,7 @@ contract DEx {
         }
     }
     
-    /* claim escrow by revealing secret by the receiver, or in case of sender claim after escrow expiry time.
+    /* claim escrow by revealing secret by the receiver
     * _secret: secret in bytes, length random
     */
     
@@ -63,15 +63,25 @@ contract DEx {
             msg.sender.transfer(amount);
             return true;
         }
-        else if(escrows[hash].sender == msg.sender && now > escrows[hash].expiryTime) {
-            escrows[hash].amount = 0;
-            msg.sender.transfer(amount);
-            return true;
-        }
         else {
             return false;
         }
     }
+		
+    /* withdraw escrow in case of sender claim after escrow expiry time.
+    * _hash: hash in bytes
+    */		
+		function withdrawEscrow(bytes32 _hash) returns (bool z) {
+        if(escrows[_hash].sender == msg.sender && now > escrows[_hash].expiryTime) {
+            var amount = escrows[_hash].amount;
+						escrows[_hash].amount = 0;
+            msg.sender.transfer(amount);
+            return true;
+        }
+				else {
+						return false;
+				}
+		}
     
     /* returns escrow data for a given hash
     * _hash: hash value for which data is returned
